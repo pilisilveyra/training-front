@@ -10,7 +10,7 @@ export default function BookCard({ book }: { book: Book }){
               radius="md"
               shadow="sm"
               p="md"
-              onClick = {() => navigate('/books/${book.id}')}
+              onClick={() => navigate(`/books/${book.id}`)}
               style={{ cursor: "pointer" }}>
 
             <Group justify="space-between" mb="xs">
