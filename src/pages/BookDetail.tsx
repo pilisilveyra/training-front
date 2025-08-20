@@ -6,6 +6,8 @@ import {
 import api from "@/lib/axios";
 import type { Book } from "@/lib/types";
 import { normalizeBook } from "@/lib/normalized";
+import { toggleAvailability } from "@/lib/api";
+import {notifications} from "@mantine/notifications";
 
 
 export default function BookDetail() {
@@ -13,6 +15,7 @@ export default function BookDetail() {
     const navigate = useNavigate();
     const [book, setBook] = useState<Book | null>(null);
     const [loading, setLoading] = useState(true);
+    const [toggling, setToggling] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -31,6 +34,29 @@ export default function BookDetail() {
         }; if (id) load();
         }, [id]);
 
+
+    const onToggle = async () => {
+        if (!id) return;
+        try {
+            setToggling(true);
+            const updated = await toggleAvailability(id);
+            setBook(updated); // refrescamos el estado con la respuesta del back
+            notifications.show({
+                color: "green",
+                title: "Disponibilidad actualizada",
+                message: updated.isAvailable ? "Ahora está disponible." : "Ahora NO está disponible.",
+            });
+        } catch (e: any) {
+            notifications.show({
+                color: "red",
+                title: "Error",
+                message: e?.response?.data?.message ?? e.message ?? "No se pudo actualizar la disponibilidad",
+            });
+        } finally {
+            setToggling(false);
+        }
+    };
+
     return (
         <Container size="md" py="xl">
             <Group justify="space-between" mb="md">
@@ -39,7 +65,6 @@ export default function BookDetail() {
             </Group>
 
             {loading && <Loader />}
-
             {error && <Alert color="red" mt="sm">{error}</Alert>}
 
             {!loading && !error && book && (
@@ -59,8 +84,19 @@ export default function BookDetail() {
                         <Badge variant="light">Género: {book.genre}</Badge>
                         <Badge variant="light">{book.pages} págs</Badge>
                     </Group>
+
+                    <Group mt="md">
+                        <Button
+                            onClick={onToggle}
+                            loading={toggling}
+                            variant={book.isAvailable ? "outline" : "filled"}
+                            color={book.isAvailable ? "gray" : "green"}
+                        >
+                            {book.isAvailable ? "Marcar NO disponible" : "Marcar disponible"}
+                        </Button>
+                    </Group>
                 </Stack>
             )}
         </Container>
-    )
+    );
 }
