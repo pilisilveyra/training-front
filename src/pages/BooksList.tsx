@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
     Container, Title, Loader, Alert, SimpleGrid, TextInput, Button, Group
 } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
-import api from "@/lib/axios";
 import type { Book } from "@/lib/types";
 import BookCard from "@/components/BookCard";
 import { useNavigate } from "react-router-dom";
-import { normalizedList } from "@/lib/normalized";
+import { notifications } from "@mantine/notifications";
+import {getBooks} from "@/lib/api.ts";
+
 
 export default function BookList(){
     const [books, setBooks] = useState<Book[]>([]);
@@ -18,22 +19,23 @@ export default function BookList(){
     const navigate = useNavigate();
 
 
+    const loadBooks = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const list = await getBooks();
+            setBooks(list);
+            setFiltered(list);
+        } catch (e: any) {
+            setError(e?.response?.data?.message ?? e?.message ?? "Error inesperado");
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     useEffect(() => {
-        const load = async () => {
-            try {
-                const { data } = await api.get("/books");
-                const normalized = normalizedList(data);
-                setBooks(normalized);
-                setFiltered(normalized);
-            } catch (e: any) {
-                console.error("GET /books failed:", e);
-                setError(e?.response?.data?.message ?? e.message ?? "Error al cargar libros");
-            } finally {
-                setLoading(false);
-            }
-        };
-        load();
-    }, []); // Solo cuando se monta el componente, por eso []
+        loadBooks();
+    }, [loadBooks]);
 
 
     useEffect(() => {
@@ -46,6 +48,16 @@ export default function BookList(){
         );
         }, [query, books] // Cuando queries o books cambia
     );
+
+    const handleDeletedLocal = (id: number) => {
+        setBooks((prev) => prev.filter((b) => b.id !== id));
+        setFiltered((prev) => prev.filter((b) => b.id !== id));
+        notifications.show({
+            color: "green",
+            title: "Libro eliminado",
+            message: "La lista fue actualizada.",
+        });
+    };
 
     return (
         <Container size="lg" py="xl">
@@ -68,7 +80,13 @@ export default function BookList(){
 
             {!loading && !error && (
                 <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md" mt="md">
-                    {filtered.map(b => <BookCard key={b.id} book={b} />)}
+                    {filtered.map((b) => (
+                        <BookCard
+                            key={b.id}
+                            book={b}
+                            onDeleted={() => handleDeletedLocal(b.id)}
+                        />
+                    ))}
                 </SimpleGrid>
             )}
         </Container>

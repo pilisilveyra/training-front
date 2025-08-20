@@ -3,10 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
     Container, Title, Text, Loader, Alert, Group, Badge, Button, Stack
 } from "@mantine/core";
-import api from "@/lib/axios";
 import type { Book } from "@/lib/types";
-import { normalizeBook } from "@/lib/normalized";
-import { toggleAvailability } from "@/lib/api";
+import {getBook, toggleAvailability} from "@/lib/api";
 import { deleteBook } from "@/lib/api";
 import DeleteDialog from "@/components/DeleteDialog";
 import {notifications} from "@mantine/notifications";
@@ -21,20 +19,27 @@ export default function BookDetail() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        let alive = true;
         const load = async () => {
+            if (!id) return;
             try {
-                const {data} = await api.get(`/books/${id}`);
-                setBook(normalizeBook(data));
-            } catch (e: any){
-                const msg = e?.response?.status === 404
-                    ? "El libro no existe."
-                    : (e?.response?.data?.message ?? e.message ?? "Error al cargar el libro");
-                setError(msg);
+                const b = await getBook(id);
+                if (alive) setBook(b);
+            } catch (e: any) {
+                const msg =
+                    e?.response?.status === 404
+                        ? "El libro no existe."
+                        : e?.response?.data?.message ?? e?.message ?? "Error inesperado";
+                if (alive) setError(msg);
             } finally {
-                setLoading(false);
+                if (alive) setLoading(false);
             }
-        }; if (id) load();
-        }, [id]);
+        };
+        load();
+        return () => {
+            alive = false;
+        };
+    }, [id]);
 
 
     const onToggle = async () => {

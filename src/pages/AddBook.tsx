@@ -2,10 +2,9 @@ import { Container, Title } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useNavigate } from "react-router-dom";
 import BookForm from "@/components/BookForm";
-import api from "@/lib/axios";
-import type { CreateBookData, Book } from "@/lib/types";
-import { normalizeBook } from "@/lib/normalized";
+import type { CreateBookData } from "@/lib/types";
 import { useState } from "react";
+import {createBook} from "@/lib/api.ts";
 
 
 export default function AddBook() {
@@ -15,8 +14,7 @@ export default function AddBook() {
     const handleSubmit = async (values: CreateBookData) => {
         try {
             setLoading(true);
-            const { data } = await api.post<Book>("/books", values);
-            const created = normalizeBook(data);
+            const created = await createBook(values);
 
             notifications.show({
                 color: "green",
