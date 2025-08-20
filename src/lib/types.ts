@@ -20,3 +20,13 @@ export type PropsForm = {
     loading?: boolean;
     onSubmit: (values: CreateBookData) => void;
 };
+
+export type DeleteDialogProps = {
+    title?: string;
+    description?: string;
+    onConfirm: () => Promise<void> | void;
+    triggerLabel?: string;
+    confirmLabel?: string;
+    size?: string | number;
+    color?: string;
+};

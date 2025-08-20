@@ -7,6 +7,8 @@ import api from "@/lib/axios";
 import type { Book } from "@/lib/types";
 import { normalizeBook } from "@/lib/normalized";
 import { toggleAvailability } from "@/lib/api";
+import { deleteBook } from "@/lib/api";
+import DeleteDialog from "@/components/DeleteDialog";
 import {notifications} from "@mantine/notifications";
 
 
@@ -94,6 +96,23 @@ export default function BookDetail() {
                         >
                             {book.isAvailable ? "Marcar NO disponible" : "Marcar disponible"}
                         </Button>
+
+
+                        <DeleteDialog
+                            title="Eliminar libro"
+                            description="¿Seguro que querés eliminar este libro? Esta acción no se puede deshacer."
+                            triggerLabel="Eliminar"
+                            onConfirm={async () => {
+                                await deleteBook(book!.id);
+                                notifications.show({
+                                    color: "green",
+                                    title: "Libro eliminado",
+                                    message: `"${book!.title}" se eliminó correctamente.`,
+                                });
+                                navigate("/"); // volver al listado
+                            }}
+                        />
+
                     </Group>
                 </Stack>
             )}

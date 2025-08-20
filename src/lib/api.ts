@@ -11,3 +11,7 @@ export async function toggleAvailability(id: string | number): Promise<Book> {
     const { data } = await api.put(`/books/${id}/available`); // o /api/books
     return normalizeBook(data);
 }
+
+export async function deleteBook(id: number | string): Promise<void> {
+    await api.delete(`/books/${id}`);
+}
