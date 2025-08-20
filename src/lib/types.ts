@@ -1,25 +1,16 @@
 export interface Book {
-    id: string
-    title: string
-    author: string
-    year: number
-    language: string
-    genre: string
-    isAvailable: boolean
-    description?: string
-    isbn?: string
+    id: number;
+    title: string;
+    author: string;
+    publicationYear: number;
+    language: string;
+    genre: string;
+    isAvailable: boolean;
+    pages: number;
 }
 
-export interface CreateBookData {
-    title: string
-    author: string
-    year: number
-    language: string
-    genre: string
-    description?: string
-    isbn?: string
-}
+export type CreateBookData = Omit<Book, 'id'>;
 
-export interface UpdateBookData extends Partial<CreateBookData> {
-    isAvailable?: boolean
-}
+export type UpdateBookData = Partial<CreateBookData> & {
+    isAvailable?: boolean;
+};
